@@ -34,28 +34,6 @@ def mean_absolute_percentage_error(y_true, y_pred):
 
 def linear_gam(X_train, y_train):
     gam = LinearGAM(lam=10, n_splines=10, basis="cp").gridsearch(X_train, y_train)
-    # gam = LinearGAM(basis="cp").gridsearch(X_train, y_train)
-    # gam = GAM(
-    #    s(0)
-    #    + s(1)
-    #    + s(2)
-    #    + s(3)
-    #    + s(4, basis="cp")
-    #    + s(5, basis="cp")
-    #    + s(6)
-    #    + s(7)
-    #    + s(8)
-    #    + s(9)
-    #    + s(10)
-    #    + s(11)
-    #    + s(12)
-    #    + s(13)
-    #    + s(14)
-    #    + s(15, basis="cp")
-    #    + s(16, basis="cp"),
-    #    lam=30,
-    #    n_splines=10,
-    # ).gridsearch(X_train, y_train)
     return gam
 
 
@@ -76,8 +54,7 @@ def weekly_prediction(df, start_date, days, save=False):
     df_prediction = turn_array_into_dataframe(arrays, column_names)
     file_name = (
         "/home/mehdi/time_series/prediction_" + str(new_start_date) + "to" + str(t)
-    )
-    print(file_name)
+    ) 
     if save:
         df_prediction.to_pickle(file_name)
     score = mean_absolute_percentage_error(y_test, y_prediction)
@@ -91,7 +68,6 @@ def make_figure(df, start_date, hours=0, days=0, weeks=0, marker="o"):
         + timedelta(hours=hours)
         + timedelta(days=days)
         + timedelta(weeks=weeks)
-    )
-    print(end_date)
+    ) 
     df = df.loc[start_date:end_date].copy()
     df.plot(figsize=(15, 5))

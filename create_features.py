@@ -1,10 +1,15 @@
+from datetime import timedelta
 import logging
 
 import numpy as np
 import pandas as pd
 
-from dataframe_formatting import create_features, turn_array_into_dataframe
-from sequential_model import SequentialModel
+from dataframe_formatting import (
+    create_features,
+    dataframe_model,
+    turn_array_into_dataframe,
+)
+from models.sequential_model import SequentialModel
 
 
 class FeatureCreation(SequentialModel):
@@ -84,3 +89,13 @@ class FeatureCreation(SequentialModel):
 
     def fit_predict(self, df_train):
         return self.predict(df_train)
+
+
+if __name__ == "__main__":
+    df = dataframe_model(
+        r"/home/dehk/sequentior/data/conso/eCO2mix_RTE_Ile-de-France_Annuel-Definitif",
+        "/home/dehk/sequentior/data/weather/0715609999",
+    )
+    ft_creation = FeatureCreation(horizon_prediction=20)  # timedelta(hours=20))
+    df_ft = ft_creation.predict(df)
+    print(df_ft)

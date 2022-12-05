@@ -1,7 +1,8 @@
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
-
-from sequentior.sequential_model import SequentialModel
+from .sequential_model import SequentialModel
 
 
 class BOA(SequentialModel):
@@ -71,10 +72,10 @@ class BOA(SequentialModel):
 
         self.b = np.maximum(self.b, np.abs(r))
 
-        self.v = self.v + r ** 2
+        self.v = self.v + r**2
         eta = np.minimum(1 / (2 * self.b), (np.log(n) / self.v) ** (0.5))
         eta = np.nan_to_num(eta, nan=np.nan)
-        r_reg = r - eta * r ** 2
+        r_reg = r - eta * r**2
         self.R_reg = self.R_reg + r_reg
         self.w_logits = eta * self.R_reg
 
@@ -161,7 +162,7 @@ class MLpol(SequentialModel):
         )
         r = awake * (lpred - lexp)
         self.R += r
-        r_square = r ** 2
+        r_square = r**2
 
         new_b = np.maximum(self.b, r_square)
 
@@ -219,3 +220,9 @@ def loss_function(x, y, pred=None, loss_type="square", loss_gradient=False):
             return np.sign(pred - y) * x / np.abs(y)
         else:
             raise NotImplementedError(f"lost type {loss_type} is not understood")
+
+
+if __name__ == "__main__":
+
+    model = BOA("BOA", horizon_prediction=timedelta(hours=19))
+    # model.fit_predict(df)

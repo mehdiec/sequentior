@@ -1,18 +1,21 @@
 from datetime import datetime
+from glob import glob
 
 import numpy as np
 import pandas as pd
 
 
-def read_RTE_to_dataframe(path, usecols, drop_NA=True):
-    df = pd.read_excel(path, usecols=usecols)
+def read_RTE_to_dataframe(path, drop_NA=True):
+    df = pd.read_csv(
+        path,
+    )
     if drop_NA:
         df = df[df["Date"].notna()]
         df = df[df["Heures"].notna()]
     df.loc[:, "Date"] = pd.to_datetime(
         df.Date.astype(str) + " " + df.Heures.astype(str)
     )
-    del df["Heures"]
+    df = df[["Date", "Consommation"]]
     df.columns = ["ds", "y"]
     df = df.set_index("ds")
     df = df[df["y"] != "ND"]
@@ -43,8 +46,19 @@ def read_climate_to_dataframe(path, selected_colulns=["DATE", "TMP", "DEW"]):
 
 
 def dataframe_model(path_conso, path_recording):
-    df_conso = read_RTE_to_dataframe(path_conso, "C:E")
-    df_recording = read_climate_to_dataframe(path_recording)
+
+    weathers = glob(path_conso + "*")
+    consomations = glob(path_recording + "*")
+
+    df_recording = read_climate_to_dataframe(consomations[0])
+    for w in consomations[1:]:
+        df_tmp = read_climate_to_dataframe(w)
+        df_recording = pd.concat([df_recording, df_tmp])
+
+    df_conso = read_RTE_to_dataframe(weathers[0])
+    for w in weathers[1:]:
+        df_tmp = read_RTE_to_dataframe(w)
+        df_conso = pd.concat([df_conso, df_tmp])
     df_train = pd.merge(df_conso, df_recording, left_index=True, right_index=True)
     return df_train
 
@@ -124,8 +138,8 @@ def make_train_test_all(df_train_test):
     X = pd.concat([X_int, df_fourier], axis=1, sort=False)
     X = X.dropna()
     y = X["y"]
-    time_list = X["ds"]
-    X = X.drop("ds", 1)
+    time_list = X.index
+    # X = X.drop("ds", 1)
     X = X.drop("y", 1)
     return X.values, y, time_list
 
@@ -196,3 +210,12 @@ def turn_array_into_dataframe(arrays, column_names, index=None):
 
     df = pd.DataFrame(dict_format, index=index, dtype=np.float64)
     return df
+
+
+if __name__ == "__main__":
+    df = dataframe_model(
+        r"/home/dehk/sequentior/data/conso/eCO2mix_RTE_Ile-de-France_Annuel-Definitif",
+        "/home/dehk/sequentior/data/weather/0715609999",
+    )
+
+    X, y, time_list = make_train_test_all(df)
